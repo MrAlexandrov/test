@@ -1,0 +1,259 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const double PI = 3.14159265359, EPS = 1e-6;
+
+struct point {
+    double x, y;
+    void in() {
+        cin >> x >> y;
+    }
+};
+
+struct vec {
+    using vec_type = double;
+    vec_type x, y;
+    long double len = -1;
+    void in() {
+        cin >> x >> y;
+    }
+    vec(){
+    }
+    vec(vec_type x1, vec_type y1) {
+        x = x1, y = y1;
+    }
+    void make_normal() {
+        double Z = sqrt(x * x + y * y);
+        x /= Z;
+        y /= Z;
+        len = 1;
+    }
+    vec(point p1, point p2) {
+        x = p2.x - p1.x;
+        y = p2.y - p1.y;
+    }
+    double get_angle() {
+        double a = atan2(y, x);
+        if (a < 0)
+            a += 2 * PI;
+        return a;
+    }
+    double get_length() {
+        len = sqrt(x * x + y * y);
+        return len;
+    }
+};
+
+const vec null_vec = {0, 0};
+
+vec operator+(const vec& v1, const vec& v2) {
+    vec v = {v1.x + v2.x, v1.y + v2.y};
+    return v;
+}
+
+struct polygon {
+    int n;
+    vector<point> p;
+    long double S = -1;
+    polygon(int& sz) {
+        n = sz;
+        p.resize(n);
+    }
+    long double calc_square() {
+        int res = 0;
+        for (int i = 0; i < n - 1; ++i) {
+            point a = p[i], b = p[i + 1];
+            res += (a.y + b.y) * (b.x - a.x);
+        }
+        res += (p[n - 1].y + p[0].y) * (p[0].x - p[n - 1].x);
+        S = res * 1.0 / 2.0;
+        return S;
+    }
+};
+
+long double dist(point a, point b) {
+    return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+}
+
+struct line {
+    double A, B, C;
+    void make_normal() {
+        double Z = sqrt(A * A + B * B);
+        A /= Z;
+        B /= Z;
+        C /= Z;
+        if (C > 0) {
+            A *= -1;
+            B *= -1;
+            C *= -1;
+        }
+    }
+    line(){
+    }
+    line(point p1, point p2) {
+        A = p1.y - p2.y;
+        B = p2.x - p1.x;
+        C = p1.x * p2.y - p2.x * p1.y;
+        make_normal();
+    }
+    void in() {
+        cin >> A >> B >> C;
+        make_normal();
+    }
+    void make_line_point_normal_vec(point P, vec V) {
+        V.make_normal();
+        A = V.x;
+        B = V.y;
+        C = - (A * P.x + B * P.y);
+    }
+};
+
+bool operator==(const line& a, const line& b) {
+    return abs(a.A - b.A) < EPS && abs(a.B - b.B) < EPS && abs(a.C - b.C) < EPS;
+}
+
+struct triangle {
+    point p1, p2, p3;
+    double a, b, c;
+    long double S = -1;
+    long double calc_square() {
+        S = ((p2.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (p2.y - p1.y)) * 1.0 / 2;
+        return S;
+    }
+};
+
+struct ray {
+    point A, B;
+    void in() {
+        A.in();
+        B.in();
+    }
+};
+
+struct seg {
+    point A, B;
+    void make_ok() {
+        if (A.x == B.x) {
+            if (A.y > B.y)
+                swap(A, B);
+        } else if (A.x > B.x) {
+            swap(A, B);
+        }
+    }
+    void in() {
+        A.in();
+        B.in();
+        make_ok();
+    }
+};
+
+double dotp(vec v1, vec v2) {
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
+double crossp(vec v1, vec v2) {
+    return v1.x * v2.y - v2.x * v1.y;
+}
+
+double get_angle_vec(vec v1, vec v2) {
+    return abs(atan2(crossp(v1, v2), dotp(v1, v2)));
+}
+
+line get_bisector(point O, point X, point Z) {
+    vec v1(O, X), v2(O, Z);
+    vec vb = null_vec;
+    if (crossp(v1, v2) == 0)
+        vb = {v1.y, -v1.x};
+    else
+        vb = v1 + v2;
+    line L(O, {O.x + vb.x, O.y + vb.y});
+    return L;
+}
+
+bool lines_parallel(line L1, line L2) {
+    return !(L1 == L2) && abs(L1.A - L2.A) < EPS && abs(L1.B - L2.B) < EPS;
+}
+
+bool lines_perpendicular(line L1, line L2) {
+    vec v1 = {L1.A, L1.B}, v2 = {L2.A, L2.B};
+    return abs(crossp(v1, v2)) < EPS;
+}
+
+bool lines_intersect(line L1, line L2) {
+    return !lines_parallel(L1, L2) && !(L1 == L2);
+}
+
+point lines_intersection(line L1, line L2) {
+    point P;
+    P.x = (L1.B * L2.C - L2.B * L1.C) / (L1.A * L2.B - L2.A * L1.B);
+    P.y = (L1.A * L2.C - L2.A * L1.C) / (L2.A * L1.B - L1.A * L2.B);
+    return P;
+}
+
+long double dist_point_line(point P, line L) {
+    return abs(L.A * P.x + L.B * P.y + L.C);
+}
+
+long double dist_point_ray(point P, ray R) {
+    line L(R.A, R.B);
+    vec v1(R.A, P), v2(R.A, R.B);
+    if (get_angle_vec(v1, v2) <= PI / 2)
+        return dist_point_line(P, L);
+    return dist(P, R.A);
+}
+
+long double dist_point_segment(point P, seg S) {
+    line L(S.A, S.B);
+    vec v1(S.A, P), v2(S.A, S.B), v3(S.B, S.A), v4(S.B, P);
+    if (get_angle_vec(v1, v2) <= PI / 2 && get_angle_vec(v3, v4) <= PI / 2)
+        return dist_point_line(P, L);
+    return min(dist(P, S.A), dist(P, S.B));
+}
+
+bool point_on_seg(point P, seg S) {
+    return dist_point_segment(P, S) < EPS;
+}
+
+bool point_on_line(point P, line L) {
+    return dist_point_line(P, L) < EPS;
+}
+
+bool point_on_ray(point P, ray R) {
+    return dist_point_ray(P, R) < EPS;
+}
+
+long double dist_segments(seg S1, seg S2) {
+    line L1(S1.A, S1.B), L2(S2.A, S2.B);
+    if (L1 == L2) {
+        if (point_on_seg(S1.A, S2) || point_on_seg(S1.B, S2) || point_on_seg(S2.A, S1) || point_on_seg(S2.B, S1))
+            return 0;
+        return min({dist(S1.A, S2.A), dist(S1.A, S2.B), dist(S1.B, S2.A), dist(S1.B, S2.B)});
+    }
+    if (lines_intersect(L1, L2)) {
+        point P = lines_intersection(L1, L2);
+        if (point_on_seg(P, S1) && point_on_seg(P, S2))
+            return 0;
+    }
+    return min({dist_point_segment(S1.A, S2), dist_point_segment(S1.B, S2), dist_point_segment(S2.A, S1), dist_point_segment(S2.B, S1)});
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+    freopen("point2.in", "r", stdin);
+    freopen("point2.out", "w", stdout);
+    cout.precision(10);
+    point P;
+    ray R;
+    P.in();
+    R.in();
+    if (point_on_ray(P, R))
+        cout << "YES";
+    else
+        cout << "NO";
+    //cout << fixed << V.get_length();
+    return 0;
+}
+/*
+*/
