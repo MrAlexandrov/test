@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef pair <ll, ll> pll;
+
+ll q;
+
+void solve () {
+    ll n;
+    cin >> n;
+    vector <ll> p (n);
+    for (ll i = 0; i < n; ++i) {
+        cin >> p[i];
+        ///p[i] /= 100;
+    }
+    ll x, a;
+    cin >> x >> a;
+    ll y, b;
+    cin >> y >> b;
+    ll k;
+    ll g = (a * b) / __gcd (a, b);
+    ll sum = x + y;
+    cin >> k;
+    sort (p.rbegin(), p.rend());
+    vector <ll> sm (n + 1);
+    sm[1] = p[0];
+    for (ll i = 1; i <= n; ++i)
+        sm[i] = sm[i - 1] + p[i - 1];
+    cout << "sm ";
+    for (ll i = 0; i < n + 1; ++i)
+        cout << sm[i] << ' ';
+    cout << endl;
+    ll l = 0, r = n;
+    while (r - l > 1) {
+        ll m = l + r >> 1;
+        ll cntxy = m / g;
+        ll cntx = (m / a) - cntxy;
+        ll cnty = (m / b) - cntxy;
+        cout << "m " << m << endl;
+        cout << "cnt " << cntxy << ' ' << cntx << ' ' << cnty << endl;
+        ll ans = 0;
+        ll i = 0;
+        ans += sm[cntxy] * sum / 100;
+        i = cntxy;
+        if (cntx * a > cnty * b) {
+            ans += (sm[i + cntx] - sm[i]) * a / 100;
+            i += cntx;
+            ans += (sm[i + cnty] - sm[i]) * b / 100;
+        }
+        else {
+            ans += (sm[i + cnty] - sm[i]) * b / 100;
+            i += cnty;
+            ans += (sm[i + cntx] - sm[i]) * a / 100;
+        }
+        ans += max ()
+        cout << "ans " << ans << endl;
+        if (ans >= k)
+            r = m;
+        else
+            l = m;
+    }
+
+    ll m = r;
+    ll cntxy = m / g;
+    ll cntx = (m / a) - cntxy;
+    ll cnty = (m / b) - cntxy;
+    ll ans = 0;
+    ll i = 0;
+    ans += sm[i + (cntxy - 1)] * sum / 100;
+    i = cntxy - 1;
+    if (cntx * a > cnty * b) {
+        ans += (sm[i + cntx] - sm[i]) * a / 100;
+        i += cntx;
+        ans += (sm[i + cnty] - sm[i]) * b / 100;
+    }
+    else {
+        ans += (sm[i + cnty] - sm[i]) * b / 100;
+        ans += cnty;
+        ans += (sm[i + cntx] - sm[i]) * a / 100;
+    }
+    if (ans >= k)
+        cout << r << endl;
+    else
+        cout << -1 << endl;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+    ///freopen("input.in", "r", stdin);
+    ///freopen("output.out", "w", stdout);
+    cin >> q;
+    while (q--)
+        solve ();
+    return 0;
+}

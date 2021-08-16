@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef pair <ll, ll> pll;
+
+const ll N = 2e5 + 8;
+
+ll n;
+vector <bool> a;
+vector <vector <ll>> g(N);
+vector <ll> head(N);
+vector <ll> sz(N);
+vector <vector <ll>> cnt(2, vector <ll>(N, 0));
+vector <bool> used(N, false);
+vector <ll> ans(N, 0);
+vector <ll> depth(N);
+
+ll find(ll x) {
+    if (x == head[x]) {
+        return x;
+    }
+    return head[x] = find(head[x]);
+}
+
+void unite(ll a, ll b) {
+    a = find(a);
+    b = find(b);
+    if (sz[a] < sz[b]) {
+        swap(a, b);
+    }
+    sz[a] += sz[b];
+    head[b] = a;
+}
+
+void DFS(ll v) {
+    v = find(v);
+    used[v] = true;
+    cout << "DFS: " << v << ' ' << a[v] << ' ' << sz[v] << endl;
+    cnt[a[v]][v] += sz[v];
+    for (ll u : g[v]) {
+        ll to = find(u);
+        if (used[to]) {
+            continue;
+        }
+        depth[to] = depth[v] + 1;
+        DFS(to);
+        if (cnt[0][to] > cnt[1][to]) {
+            cnt[0][v] += cnt[0][to];
+            cnt[1][v] += cnt[1][to];
+        }
+    }
+}
+
+void DFS1(ll v) {
+    v = find(v);
+    used[v] = true;
+    ans[v] = cnt[0][v] - cnt[1][v];
+    for (ll u : g[v]) {
+        ll t = find(u);
+
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+    ///freopen("input.in", "r", stdin);
+    ///freopen("output.out", "w", stdout);
+    cin >> n;
+    a.resize(n);
+    iota(head.begin(), head.end(), 0LL);
+    fill(sz.begin(), sz.end(), 1LL);
+    for (ll i = 0; i < n; ++i) {
+        ll x;
+        cin >> x;
+        a[i] = (x == 0);
+    }
+    for (ll i = 0; i < n - 1; ++i) {
+        ll v, u;
+        cin >> v >> u;
+        --v, --u;
+        if (a[v] == a[u]) {
+            unite(v, u);
+        } else {
+            v = find(v), u = find(u);
+            g[v].push_back(u);
+            g[u].push_back(v);
+        }
+    }
+    depth[find(0)] = 0;
+    DFS(find(0));
+    for (ll i = 0; i < n; ++i) {
+        cout << head[i] << ' ';
+    }
+    cout << endl;
+    for (ll i = 0; i < n; ++i) {
+        cout << i << ' ' << cnt[0][i] << ' ' << cnt[1][i] << endl;
+    }
+    fill(used.begin(), used.end(), false);
+    DFS1(find(0));
+    for (ll i = 0; i < n; ++i) {
+        cout << ans[find(i)] << ' ';
+    }
+    return 0;
+}
+
+/**
+
+
+**/
